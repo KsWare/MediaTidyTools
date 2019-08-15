@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29020.237
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaTimestampRenamer", "MediaTimestampRenamer\MediaTimestampRenamer.csproj", "{EF3A7728-F25E-4192-A3E9-BD5E1FDD926F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaTimestampRenamerTests", "MediaTimestampRenamerTests\MediaTimestampRenamerTests.csproj", "{8EDF4429-251A-416D-BB68-93F227191BCF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF3A7728-F25E-4192-A3E9-BD5E1FDD926F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF3A7728-F25E-4192-A3E9-BD5E1FDD926F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF3A7728-F25E-4192-A3E9-BD5E1FDD926F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF3A7728-F25E-4192-A3E9-BD5E1FDD926F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EDF4429-251A-416D-BB68-93F227191BCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EDF4429-251A-416D-BB68-93F227191BCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EDF4429-251A-416D-BB68-93F227191BCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EDF4429-251A-416D-BB68-93F227191BCF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1FAE1D56-943E-4640-BCAA-9ED89FAB5F76}
+	EndGlobalSection
+EndGlobal
