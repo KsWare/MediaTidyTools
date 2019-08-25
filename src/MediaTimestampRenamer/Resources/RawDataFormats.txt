@@ -1,0 +1,20 @@
+﻿Adobe Inc. Digital Negative: .dng
+Canon: .tif, .crw, .cr2, .cr3
+Contax: .raw
+Epson: .erf
+Fujifilm: .raf
+Hasselblad: .3fr, .fff
+Kodak: .dcr, .dcs, .kdc, .raw
+Leica Camera: .raw, .dng, .rwl
+Mamiya: .mef, .mfw, .iiq
+Minolta Raw: .mrw, .mdc
+Nikon: .nef, .nrw
+Olympus: .orf, .ori
+Panasonic: .raw, .rw2
+Pentax: .pef, .dng
+Phase One: .iiq
+Ricoh: .dng
+Samsung: .srw, .dng
+Sigma: .x3f
+Sinar CaptureShop für Macintosh: .cs1, .cs4, .cs16
+Sony: .arw, .srf, .sr2

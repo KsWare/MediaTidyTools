@@ -7,7 +7,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaTimestampRenamer", "Me
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaTimestampRenamerTests", "MediaTimestampRenamerTests\MediaTimestampRenamerTests.csproj", "{8EDF4429-251A-416D-BB68-93F227191BCF}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MediaFileLibShared", "..\..\MediaFileLib\src\MediaFileLibShared\MediaFileLibShared.shproj", "{F14B1853-801E-4FF6-AE8D-5FAC63C933D3}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\..\MediaFileLib\src\MediaFileLibShared\MediaFileLibShared.projitems*{ef3a7728-f25e-4192-a3e9-bd5e1fdd926f}*SharedItemsImports = 4
+		..\..\MediaFileLib\src\MediaFileLibShared\MediaFileLibShared.projitems*{f14b1853-801e-4ff6-ae8d-5fac63c933d3}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

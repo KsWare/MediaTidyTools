@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
-using static KsWare.MediaTimestampRenamer.RegExUtils;
+using KsWare.MediaFileLib.Shared;
+using KsWare.MediaTimestampRenamer.Plugins;
+using static KsWare.MediaFileLib.Shared.RegExUtils;
 
 namespace KsWare.MediaTimestampRenamer {
 
@@ -27,6 +29,13 @@ namespace KsWare.MediaTimestampRenamer {
 			/* P1000715 */
 			
 			@"^(?<name>.+)(?<ext>\.[^.]+)$" /* name.ext */
+		};
+
+		private static IProcessPlugin[] _processPlugins = new IProcessPlugin[]
+		{
+			new SonyVideoPlugin(),
+			new MoviePlugin(),
+			new DefaultPlugin()
 		};
 		
 		
@@ -121,119 +130,72 @@ namespace KsWare.MediaTimestampRenamer {
 				return;
 			}
 
-			if (IsMatch(Path.GetFileNameWithoutExtension(file.FullName),
-				/*language=regexp*/@"^"
-				                   + /*language=regexp*/ @"(?<timestamp>(\d{4})-(\d{2})-(\d{2})\s(\d{6}))"
-				                   + /*language=regexp*/ @"(?<counter>-\d{1,3})?"
-				                   + /*language=regexp*/ @"(?<ev>\sEV\d\.\d[+±-])?"
-								   + /*language=regexp*/ @"\s(?<authorSign>([A-Z]{2})(\d{2}(A-Za-z)+)?)"
-				                   + /*language=regexp*/ @"(\s(?<basename>{[^}]+}))?"
-				                   + /*language=regexp*/ @"(?<suffix>.*)"
-				                   + /*language=regexp*/ @"$", out var match))
+			foreach (var processPlugin in _processPlugins)
 			{
-				// aktuelles Format, nichts zu tun.
-				return;
-			}
-
-			// altes Format "2014-04-19 191023 DSC_0092_1.JPG" konvertieren
-			if (IsMatch(Path.GetFileNameWithoutExtension(file.FullName),
-				@"^"
-				+ @"(?<timestamp>(\d{4})-(\d{2})-(\d{2})\s(\d{6,9}))"
-				+ @"\s(?<basename>DSC_\d{4}(_\d+)?)"
-				+ @"(?<suffix>.*)"
-				+"$", out match))
-			{
-				var n = new MediaFileInfo(
-					new FileInfo(fileName),
-					match.Groups["timestamp"].Value,
-					null,
-					AuthorSign,
-					match.Groups["basename"].Value,
-					match.Groups["suffix"].Value);
-				file.MoveTo(n.ToString());
-				return;
-			}
-
-			// altes Format "2014-04-19 191023000 {DSC_0092_1}.JPG" konvertieren
-			if (IsMatch(Path.GetFileNameWithoutExtension(file.FullName),
-				/*language=regexp*/@"^"
-				+ /*language=regexp*/ @"(?<timestamp>(\d{4})-(\d{2})-(\d{2})\s(\d{6,9}))"
-				+ /*language=regexp*/ @"(\s(?<basename>{[^}]+}))?"
-				+ /*language=regexp*/ @"(?<suffix>.*)"
-				+ /*language=regexp*/ @"$", out match))
-			{
-				var timestamp = match.Groups["timestamp"].Value;
-				var baseName = match.Groups["basename"].Value;
-				var suffix = match.Groups["suffix"].Value;
-				var counter = ((timestamp.Substring(17) != "000" && timestamp.Substring(17) != "") ? "-" + timestamp.Substring(0, 17) : "");
-				timestamp = timestamp.Substring(0, 17);
-				var fn = new MediaFileInfo(file, timestamp, counter, AuthorSign, baseName, suffix);
-				file.MoveTo(fn.ToString());
-				return;
-			}
-
-			{
-				if (FileUtils.IsMovie(file.Name))
+				if (processPlugin.IsMatch(file, out var match))
 				{
-					ProcessMovie(file);
-					return;
+					if(processPlugin.Process(processPlugin.CreateMediaFileInfo(file, match, AuthorSign))) break;
 				}
-
-				ProcessBaseFile(file, out string baseFile, out MediaFileInfo mediaFileName);
-				var refFile = baseFile ?? file.FullName;
-				ProcessExposureNormalFile(ref refFile, ref mediaFileName);
-
-				var ts = FileUtils.GetDateTakenOrAlternative(refFile);
-				if (!ts.HasValue)
-				{
-					Debug.WriteLine($"No date!. {refFile}");
-					return;
-				}
-
-				mediaFileName.Timestamp = ts.Value;
-				file.MoveTo(mediaFileName.CreateUniqueFileName());
 			}
-		}
 
-		private void ProcessBaseFile(FileInfo file, out string baseFile, out MediaFileInfo mediaFileInfo)
-		{
-			baseFile = null;
-			if (FileUtils.SplitName(file.FullName, out var baseName, out var suffix))
-			{
-				FileUtils.TryGetBaseFile(file.FullName, baseName, out baseFile);
-			}
-			mediaFileInfo = new MediaFileInfo(file, null, null, AuthorSign, baseName, suffix);
-		}
-
-		private void ProcessExposureNormalFile(ref string refFile, ref MediaFileInfo mediaFileInfo)
-		{
-			
-			if ((mediaFileInfo.Suffix ?? "").StartsWith("~Aurora"))
-			{
-				// Aurora HDR verwendet manchmal falsche Basis Datei.
-				if (!FileUtils.TryGetExposureBias(refFile, out var ev)) return;
-				if (!FileUtils.TryFindExposureDefaultFile(refFile, out var exposureDefaultFile)) return;
-				mediaFileInfo.BaseName = FileUtils.GetOriginalName(exposureDefaultFile);
-				refFile = exposureDefaultFile;
-			}
-			else if (!string.IsNullOrEmpty(mediaFileInfo.Suffix)) 
-				return;
-			else
-			{
-				if (!FileUtils.TryGetExposureBias(refFile, out var ev)) return;
-				if (!FileUtils.TryFindExposureDefaultFile(refFile, out var exposureDefaultFile)) return;
-				mediaFileInfo.GroupType=GroupType.ExposureValue;
-				refFile = exposureDefaultFile;				
-			}
 			
 
+
+//			if (IsMatch(Path.GetFileNameWithoutExtension(file.FullName),
+//				/*language=regexp*/@"^"
+//				                   + /*language=regexp*/ @"(?<timestamp>(\d{4})-(\d{2})-(\d{2})\s(\d{6}))"
+//				                   + /*language=regexp*/ @"(?<counter>-\d{1,3})?"
+//				                   + /*language=regexp*/ @"(?<ev>\sEV\d\.\d[+±-])?"
+//								   + /*language=regexp*/ @"\s(?<authorSign>([A-Z]{2})(\d{2}(A-Za-z)+)?)"
+//				                   + /*language=regexp*/ @"(\s(?<basename>{[^}]+}))?"
+//				                   + /*language=regexp*/ @"(?<suffix>.*)"
+//				                   + /*language=regexp*/ @"$", out var match))
+//			{
+//				// aktuelles Format, nichts zu tun.
+//				return;
+//			}
+
+//			// altes Format "2014-04-19 191023 DSC_0092_1.JPG" konvertieren
+//			if (IsMatch(Path.GetFileNameWithoutExtension(file.FullName),
+//				@"^"
+//				+ @"(?<timestamp>(\d{4})-(\d{2})-(\d{2})\s(\d{6,9}))"
+//				+ @"\s(?<basename>DSC_\d{4}(_\d+)?)"
+//				+ @"(?<suffix>.*)"
+//				+"$", out match))
+//			{
+//				var n = new MediaFileInfo(
+//					new FileInfo(fileName),
+//					match.Groups["timestamp"].Value,
+//					null,
+//					AuthorSign,
+//					match.Groups["basename"].Value,
+//					match.Groups["suffix"].Value);
+//				file.MoveTo(n.ToString());
+//				return;
+//			}
+
+//			// altes Format "2014-04-19 191023000 {DSC_0092_1}.JPG" konvertieren
+//			if (IsMatch(Path.GetFileNameWithoutExtension(file.FullName),
+//				/*language=regexp*/@"^"
+//				+ /*language=regexp*/ @"(?<timestamp>(\d{4})-(\d{2})-(\d{2})\s(\d{6,9}))"
+//				+ /*language=regexp*/ @"(\s(?<basename>{[^}]+}))?"
+//				+ /*language=regexp*/ @"(?<suffix>.*)"
+//				+ /*language=regexp*/ @"$", out match))
+//			{
+//				var timestamp = match.Groups["timestamp"].Value;
+//				var baseName = match.Groups["basename"].Value;
+//				var suffix = match.Groups["suffix"].Value;
+//				var counter = ((timestamp.Substring(17) != "000" && timestamp.Substring(17) != "") ? "-" + timestamp.Substring(0, 17) : "");
+//				timestamp = timestamp.Substring(0, 17);
+//				var fn = new MediaFileInfo(file, timestamp, counter, AuthorSign, baseName, suffix);
+//				file.MoveTo(fn.ToString());
+//				return;
+//			}
+
+			{
+				
+			}
 		}
 
-		private void ProcessMovie(FileInfo file)
-		{
-			var ts = FileUtils.GetDateTakenOrAlternative(file.FullName);
-			var f = new MediaFileInfo(file, ts.Value, null, AuthorSign, file.Name, null);
-			file.MoveTo(f.CreateUniqueFileName());
-		}
 	}
 }

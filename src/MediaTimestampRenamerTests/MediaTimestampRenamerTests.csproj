@@ -50,14 +50,6 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileNameTests.cs" />
-    <Compile Include="FileUtilsTests.cs" />
-    <Compile Include="MediaFileInfoTests.cs" />
-    <Compile Include="MediaFileNameTests.cs" />
-    <Compile Include="NearestTimeComparerTests.cs" />
-    <Compile Include="TestTools.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -66,9 +58,13 @@
       <Name>MediaTimestampRenamer</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Plugins\DefaultPluginTests.cs" />
+    <Compile Include="TestHelper.cs" />
+  </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="TestData\Sample.JPG">
+    <Content Include="TestData\W256NoExif.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
