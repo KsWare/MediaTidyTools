@@ -73,8 +73,8 @@ namespace KsWare.MediaTimestampRenamer.Plugins
 			// Rename dependencies 
 			fileInfo.RenameDependency(".thumbs", ".256");
 			fileInfo.RenameDependency(".preview", "_~AuroraPreviewAuto");
-			fileInfo.RenameDependencyRawExtension(RawDataFormats);
-			fileInfo.RenameDependencyExtension(".AUH"); // Aurora HDR
+			fileInfo.RenameDependencyRawExtension(RawDataFormats,"RAW", true);
+			fileInfo.RenameDependencyExtension(".AUH", "AUH", true, out _); // Aurora HDR
 			return true;
 		}
 
