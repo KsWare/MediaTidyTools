@@ -75,6 +75,7 @@
     </ApplicationDefinition>
     <Compile Include="Plugins\DefaultPlugin.cs" />
     <Compile Include="Plugins\MoviePlugin.cs" />
+    <Compile Include="Plugins\OpenCameraHdrPlugin.cs" />
     <Compile Include="Plugins\SonyVideoPlugin.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

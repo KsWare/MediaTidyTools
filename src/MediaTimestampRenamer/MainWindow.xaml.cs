@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Threading;
 using KsWare.MediaFileLib.Shared;
 using KsWare.MediaTimestampRenamer.Plugins;
 using static KsWare.MediaFileLib.Shared.RegExUtils;
@@ -11,10 +13,9 @@ namespace KsWare.MediaTimestampRenamer {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	public partial class MainWindow : Window
-	{
-		private static string[] oldPatterns =
-		{
+	public partial class MainWindow : Window {
+
+		private static string[] oldPatterns = {
 			@"(?<name>DSC_\d{4,5})(?<ext>\.(jpg))" /* DSC_0014.JPG */,
 			/* 20180921_181653.jpeg */
 			/* cameringo_20180908_102138.jpeg */
@@ -27,26 +28,25 @@ namespace KsWare.MediaTimestampRenamer {
 			/* runtastic2018-09-09_17_36_10.jpg */
 			/* sketch_pic_1512240675827.jpg */
 			/* P1000715 */
-			
+
 			@"^(?<name>.+)(?<ext>\.[^.]+)$" /* name.ext */
 		};
 
-		private static IProcessPlugin[] _processPlugins = new IProcessPlugin[]
-		{
+		private static IProcessPlugin[] _processPlugins = new IProcessPlugin[] {
 			new SonyVideoPlugin(),
 			new MoviePlugin(),
-			new DefaultPlugin()
+			new OpenCameraHdrPlugin(),
+			new DefaultPlugin(),
 		};
-		
-		
+
+
 		public MainWindow() {
 			InitializeComponent();
-			AuthorSignTextBox.Text = "KS71";
+			AuthorSignTextBox.Text = "KS71"; // TODO load default settings
 			StorageLocationTextBox.Text = @"E:\Fotos";
 		}
 
-		public string AuthorSign
-		{
+		public string AuthorSign {
 			get => AuthorSignTextBox.Text;
 			set => AuthorSignTextBox.Text = value;
 		}
@@ -56,40 +56,41 @@ namespace KsWare.MediaTimestampRenamer {
 			set => StorageLocationTextBox.Text = value;
 		}
 
-		private void UIElement_OnDragOver(object sender, DragEventArgs e)
-		{
-			e.Effects=DragDropEffects.Move;
+		private void UIElement_OnDragOver(object sender, DragEventArgs e) {
+			e.Effects = DragDropEffects.Move;
 		}
 
-		private void UIElement_OnDrop(object sender, DragEventArgs e)
-		{
+		private async void UIElement_OnDrop(object sender, DragEventArgs e) {
 			e.Effects = DragDropEffects.Move;
 
 //			Debug.WriteLine($"{string.Join(", ",e.Data.GetFormats())}");
 
-			var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-			ProcessFiles(files);
+			var files = (string[]) e.Data.GetData(DataFormats.FileDrop);
+			var options = new Options {
+				AuthorSign = AuthorSign
+			};
+			var timer = new DispatcherTimer(TimeSpan.FromMilliseconds(25), DispatcherPriority.Normal, (o, args) => {
+				((DispatcherTimer) o).Stop();
+				ProcessFiles(files, options);
+			}, Dispatcher);
+			// await Dispatcher.InvokeAsync(new Action(() => ProcessFiles(files, options)), DispatcherPriority.Normal);
 		}
 
-		private void ProcessFiles(IEnumerable<string> files) 
-		{
-			var recursiveFiles=new List<string>();
-			foreach (var fileName in files)
-			{
-				if (Directory.Exists(fileName))
-				{
-					FileUtils.ScanDirectoryRecursive(fileName, ref recursiveFiles);
+		private void ProcessFiles(IEnumerable<string> files, Options options) {
+			var allFiles = new List<string>();
+			foreach (var fileName in files) {
+				if (Directory.Exists(fileName)) {
+					FileUtils.ScanDirectoryRecursive(fileName, ref allFiles);
 				}
-				else if (File.Exists(fileName))
-				{
-					recursiveFiles.Add(fileName);
+				else if (File.Exists(fileName)) {
+					allFiles.Add(fileName);
 				}
-				else
-				{
+				else {
 					Debug.WriteLine($"{fileName} not found!");
 				}
 			}
-			recursiveFiles.Sort();
+
+			allFiles.Sort();
 
 //			var unknownFileNameFormat=new List<string>();
 //			for (int i = 0; i < recursiveFiles.Count; i++)
@@ -115,31 +116,21 @@ namespace KsWare.MediaTimestampRenamer {
 //				}
 //			}
 
-			foreach (var fileName in recursiveFiles)
-			{
-				ProcessFile(fileName);
-			}
+			foreach (var fileName in allFiles) ProcessFile(fileName, options);
 		}
 
-		private void ProcessFile(string fileName)
-		{
+		private void ProcessFile(string fileName, Options options) {
 			var file = new FileInfo(fileName);
-			if (!file.Exists)
-			{
-				Debug.WriteLine($"File not found! Path:{file.FullName}");
+			if (!file.Exists) {
+				Debug.WriteLine($"File not found! Path:{file.FullName}");// possibly already processed
 				return;
 			}
 
-			foreach (var processPlugin in _processPlugins)
-			{
-				if (processPlugin.IsMatch(file, out var match))
-				{
-					if(processPlugin.Process(processPlugin.CreateMediaFileInfo(file, match, AuthorSign))) break;
-				}
+			foreach (var processPlugin in _processPlugins) {
+				if (!processPlugin.IsMatch(file, out var match)) continue;
+				var success = processPlugin.Process(processPlugin.CreateMediaFileInfo(file, match, options.AuthorSign));
+				if(success) break;
 			}
-
-			
-
 
 //			if (IsMatch(Path.GetFileNameWithoutExtension(file.FullName),
 //				/*language=regexp*/@"^"
@@ -193,9 +184,14 @@ namespace KsWare.MediaTimestampRenamer {
 //			}
 
 			{
-				
+
 			}
 		}
 
 	}
+
+	internal class Options {
+		public string AuthorSign { get; set; }
+	}
+
 }

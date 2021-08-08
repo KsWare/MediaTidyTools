@@ -3,27 +3,26 @@ using System.IO;
 using System.Text.RegularExpressions;
 using KsWare.MediaFileLib.Shared;
 
-namespace KsWare.MediaTimestampRenamer.Plugins
-{
+namespace KsWare.MediaTimestampRenamer.Plugins {
+
 	// SONY Video: C0001.MP4 C0001T01.JPG C0001M01.XML
-	public class SonyVideoPlugin : IProcessPlugin
-	{
+	public class SonyVideoPlugin : IProcessPlugin {
+
+		public string Name => "SonyVideo";
+
 		public ProcessPriority Priority => ProcessPriority.NameMatch;
 
 		public bool IsMatch(FileInfo fileInfo, out Match match) =>
 			RegExUtils.IsMatch(fileInfo.Name,
 				@"(^(?<basename>C\d{4})(?<ext>\.mp4)$)|(^(?<basename>C\d{4})[MT]\d{2}(?<ext>\.(xml|jpg))$)", out match);
 
-		public MediaFileInfo CreateMediaFileInfo(FileInfo file, Match match, string authorSign)
-		{
+		public MediaFileInfo CreateMediaFileInfo(FileInfo file, Match match, string authorSign) {
 			throw new NotImplementedException();
 		}
 
-		public bool Process(MediaFileInfo file)
-		{
+		public bool Process(MediaFileInfo file) {
 			MediaFileInfo mp4, xml, jpg;
-			switch (file.Extension.ToLowerInvariant())
-			{
+			switch (file.Extension.ToLowerInvariant()) {
 				case ".mp4":
 					mp4 = file;
 					xml = new MediaFileInfo(Path.Combine(mp4.DirectoryName, $"{mp4.BaseName}M01.XML"));
@@ -48,23 +47,22 @@ namespace KsWare.MediaTimestampRenamer.Plugins
 
 			var ts = FileUtils.GetDateTakenOrAlternative(mp4.FullName);
 			mp4.Timestamp = ts.Value;
-			mp4.Rename();
+			mp4.Rename(pluginName:Name);
 
 			// pair C0003.MP4 <=> C0003M01.XML
-			if (xml.OriginalFile.Exists)
-			{
+			if (xml.OriginalFile.Exists) {
 				xml.Timestamp = ts.Value;
-				xml.Rename();
+				xml.Rename(pluginName:Name);
 			}
 
 			// pair C0003.MP4 <=> C0003T01.JPG
-			if (jpg.OriginalFile.Exists)
-			{
+			if (jpg.OriginalFile.Exists) {
 				jpg.Timestamp = ts.Value;
-				jpg.Rename();
+				jpg.Rename(pluginName:Name);
 			}
 
 			return true;
 		}
 	}
+
 }

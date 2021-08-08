@@ -6,26 +6,23 @@ using System.Text.RegularExpressions;
 using KsWare.MediaFileLib.Shared;
 using KsWare.MediaTimestampRenamer;
 
-namespace KsWare.MediaTimestampRenamerTests.Plugins
-{
+namespace KsWare.MediaTimestampRenamerTests.Plugins {
+
 	[TestFixture]
-	public class DefaultPluginTests
-	{
+	public class DefaultPluginTests {
+
 		[TestCase(@"E:\2000-12-24 123456 EV1.0- XY00 {Z0001}~suffix+foo", true)]
-		public void IsMatch(string fileName, bool expectedResult)
-		{
+		public void IsMatch(string fileName, bool expectedResult) {
 			var sut = new DefaultPlugin();
 			var result = sut.IsMatch(new FileInfo(fileName), out _);
 
 			Assert.That(result, Is.EqualTo(expectedResult));
 		}
 
-
-
 		[TestCase(@"X:\Z0001.jpg", "W256NoExif.jpg", true, null, null, null, "AA88", "Z0001", null)]
 		[TestCase(@"X:\Z0001~suffix.jpg", "W256NoExif.jpg", true, null, null, null, "AA88", "Z0001", "~suffix")]
-		public void CreateMediaFileInfo_Basic(string fileName, string template, bool returnValue, string timeStamp, string counter, double? expValue, string authorSign, string baseName, string suffix)
-		{
+		public void CreateMediaFileInfo_Basic(string fileName, string template, bool returnValue, string timeStamp,
+			string counter, double? expValue, string authorSign, string baseName, string suffix) {
 			fileName = TestHelper.CreateTestFile(fileName, template);
 			var sut = new DefaultPlugin();
 			var fileInfo = new FileInfo(fileName);
@@ -43,8 +40,8 @@ namespace KsWare.MediaTimestampRenamerTests.Plugins
 		}
 
 		[TestCase(@"X:\Z0001.jpg", "W256NoExif.jpg", true, null, null, null, "AA88", "Z0001", null)]
-		public void Process(string fileName, string template, bool returnValue, string timeStamp, string counter, double? expValue, string authorSign, string baseName, string suffix)
-		{
+		public void Process(string fileName, string template, bool returnValue, string timeStamp, string counter,
+			double? expValue, string authorSign, string baseName, string suffix) {
 			fileName = TestHelper.CreateTestFile(fileName, template);
 			var sut = new DefaultPlugin();
 			var fileInfo = new FileInfo(fileName);
@@ -66,7 +63,8 @@ namespace KsWare.MediaTimestampRenamerTests.Plugins
 			Assert.That(mediaFileInfo.OriginalFile.Exists, Is.EqualTo(true));
 			Assert.That(mediaFileInfo.OriginalFile.Name.Contains($"{{{baseName}}}"), Is.EqualTo(true));
 			Assert.That(mediaFileInfo.OriginalFile.Name.Contains($"{authorSign}"), Is.EqualTo(true));
-			if(suffix!=null) Assert.That(mediaFileInfo.OriginalFile.Name.Contains($"{suffix}"), Is.EqualTo(true));
+			if (suffix != null) Assert.That(mediaFileInfo.OriginalFile.Name.Contains($"{suffix}"), Is.EqualTo(true));
 		}
 	}
+
 }
